@@ -5,7 +5,7 @@ const Token = require("../models/token");
 const sendMessage = require("../helpers/sendgrid");
 
 const SKJWT = 'HelloMexico2024';
-const FORGOT_PASSWORD_URL = 'https://example.com/';
+const FORGOT_PASSWORD_URL = 'https://acelerandooportunidades2025.com/';
 
 exports.register = async (req, res) => {
     const { email, password } = req.body;
@@ -22,7 +22,7 @@ exports.register = async (req, res) => {
 
             // Hashea la contraseña y crea el usuario en la base de datos
             const hashedPassword = await bcrypt.hash(password, 10);
-            // await User.create({ email, password: hashedPassword, name: '' });
+
             existingUser.password = hashedPassword;
             await existingUser.save();
 
@@ -38,7 +38,7 @@ exports.register = async (req, res) => {
         
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: "Error al registrar el usuario" });
+        return res.status(500).json({ message: "Error al registrar el usuario", error });
     }
 };
 
