@@ -1,13 +1,18 @@
 const sgMail = require('@sendgrid/mail');
+require('dotenv').config();
+
+
+const fromEmail = 'eventos@grupoamasb.mx';
+const apiKeySendGrid = process.env.API_KEY;
 
 exports.sendMessage = async (to, subject, text) => {
   try {
 
     // process.env.SENDGRID_API_KEY
-    const apiKey = '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'; 
+    const apiKey = apiKeySendGrid; 
     sgMail.setApiKey(apiKey);
     
-    const from = 'julio.ferrer@hellomexico.mx';
+    const from = fromEmail;
     const msg = {
       to, // 'test@example.com', // Change to your recipient
       from, // 'test@example.com', // Change to your verified sender
@@ -24,12 +29,11 @@ exports.sendMessage = async (to, subject, text) => {
 
 exports.sendMessagePassword = async (to, subject, text) => {
     try {
-        console.log('PRUEBAAAAAA ',to);
       // process.env.SENDGRID_API_KEY
-      const apiKey = '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'; 
+      const apiKey = apiKeySendGrid; 
       sgMail.setApiKey(apiKey);
       
-      const from = 'julio.ferrer@hellomexico.mx';
+      const from = fromEmail;
       const msg = {
         to, // 'test@example.com', // Change to your recipient
         from, // 'test@example.com', // Change to your verified sender
