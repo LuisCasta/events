@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const dotenv = require("dotenv");
 const sequelize = require('./config/database'); // Conexión DB
+const axios = require('axios');
 
 
 // Configuración
@@ -38,6 +39,29 @@ app.get("/", (req, res) => {
     }
 })();
 
+app.post('/verify-captcha', async (req, res) => {
+    const { token } = req.body; // El token enviado desde el frontend
+  
+    try {
+      // Realizar la verificación con la API de Cloudflare Turnstile
+      const response = await axios.post('https://challenges.cloudflare.com/turnstile/v0/siteverify', null, {
+        params: {
+          secret: 'TU_SECRET_KEY',  // La clave secreta que obtuviste en Cloudflare
+          response: token,
+        },
+      });
+  
+      if (response.data.success) {
+        res.send('Captcha verificado correctamente');
+      } else {
+        res.status(400).send('Captcha inválido');
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error al verificar el captcha');
+    }
+  });
+  
 
 
 const server = app.listen(0, () => {

@@ -19,8 +19,12 @@ exports.register = async (req, res) => {
             const hashedPassword = await bcrypt.hash(password, 10);
             // await User.create({ email, password: hashedPassword, name: '' });
             existingUser.password = hashedPassword;
+            await existingUser.save();
 
-            return res.status(201).json({ message: "Usuario registrado con éxito.", password: hashedPassword });
+            const userUpdated = await User.findOne({ where: { email } });
+
+
+            return res.status(201).json({ message: "Usuario registrado con éxito.", user: userUpdated });
         }
         return res.status(409).json({ message: "El usuario no existe en la base de datos." });
 
