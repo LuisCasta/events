@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user"); // Importa el modelo User desde Sequelize
+const sendMessage = require("../helpers/sendgrid");
 
 exports.register = async (req, res) => {
     const { email, password } = req.body;
@@ -22,9 +23,11 @@ exports.register = async (req, res) => {
             await existingUser.save();
 
             const userUpdated = await User.findOne({ where: { email } });
-
-
-            return res.status(201).json({ message: "Usuario registrado con éxito.", user: userUpdated });
+            const to = userUpdated.email;
+            const subject = 'Registro exitoso';
+            const text = userUpdated.name;
+            const isSendEmail = await sendMessage.sendMessage(to,subject,text);
+            return res.status(201).json({ message: "Usuario registrado con éxito.", user: userUpdated, statusEmail: isSendEmail });
         }
         return res.status(409).json({ message: "El usuario no existe en la base de datos." });
 

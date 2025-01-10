@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const dotenv = require("dotenv");
+const cors = require('cors');
 const sequelize = require('./config/database'); // Conexión DB
 const axios = require('axios');
 
@@ -11,6 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 0;
 
 // Middlewares
+app.use(cors());
 app.use(bodyParser.json());
 
 // Rutas
