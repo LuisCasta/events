@@ -1,7 +1,11 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user"); // Importa el modelo User desde Sequelize
+const Token = require("../models/token");
 const sendMessage = require("../helpers/sendgrid");
+
+const SKJWT = 'HelloMexico2024';
+const FORGOT_PASSWORD_URL = 'https://example.com/';
 
 exports.register = async (req, res) => {
     const { email, password } = req.body;
@@ -29,7 +33,7 @@ exports.register = async (req, res) => {
             const isSendEmail = await sendMessage.sendMessage(to,subject,text);
             return res.status(201).json({ message: "Usuario registrado con éxito.", user: userUpdated, statusEmail: isSendEmail });
         }
-        return res.status(409).json({ message: "El usuario no existe en la base de datos." });
+        return res.status(409).json({ message: "Por favor registre un correo electrónico corporativo válido, sólo las personas invitadas al evento podrán asistir." });
 
         
     } catch (error) {
@@ -81,17 +85,49 @@ exports.forgotPassword = async (req, res) => {
             return res.status(404).json({ message: "Usuario no encontrado" });
         }
 
-        // Genera un token de restablecimiento
-        const resetToken = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: "15m" });
-        const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+        const resetToken = jwt.sign({ email: user.email }, SKJWT, { expiresIn: "15m" });
+        const resetLink = `${FORGOT_PASSWORD_URL}?token=${resetToken}`;
 
-        // Simula el envío del correo
-        // await sendEmail(email, "Restablecimiento de contraseña", `Enlace para restablecer contraseña: ${resetLink}`);
-        console.log(`Enlace para restablecer contraseña: ${resetLink}`);
+        await Token.create({token: resetToken, type: 1, status: 1})
+
+        const to = user.email;
+        const subject = 'Recuperación de contraseña';
+        const text = resetLink;
+
+        await sendMessage.sendMessagePassword(to,subject,text);
 
         res.status(200).json({ message: "Enlace de restablecimiento enviado" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Error al procesar la solicitud de restablecimiento de contraseña" });
+    }
+};
+
+exports.updatePassword = async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: "Todos los campos son requeridos" });
+    }
+
+    try {   
+        // Verifica si el usuario ya existe
+        const existingUser = await User.findOne({ where: { email } });
+        console.log(existingUser);
+        if (existingUser) {
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+            existingUser.password = hashedPassword;
+            await existingUser.save();
+
+            const userUpdated = await User.findOne({ where: { email } });
+            return res.status(201).json({ message: "Contraseña actualizada con éxito.", user: userUpdated });
+        }
+        return res.status(409).json({ message: "Por favor registre un correo electrónico corporativo válido, sólo las personas invitadas al evento podrán asistir." });
+
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Error al actualizar la contraseña." });
     }
 };
