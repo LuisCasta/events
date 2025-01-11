@@ -86,7 +86,7 @@ exports.forgotPassword = async (req, res) => {
         }
 
         const resetToken = jwt.sign({ email: user.email }, SKJWT, { expiresIn: "15m" });
-        const resetLink = `${FORGOT_PASSWORD_URL}recovery-password?token=${resetToken}`;
+        const resetLink = `${FORGOT_PASSWORD_URL}?token=${resetToken}`;
 
         await Token.create({token: resetToken, type: 1, status: 1})
 
