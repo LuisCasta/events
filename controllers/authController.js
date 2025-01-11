@@ -96,7 +96,7 @@ exports.forgotPassword = async (req, res) => {
 
         await sendMessage.sendMessagePassword(to,subject,text);
 
-        res.status(200).json({ message: "Enlace de restablecimiento enviado" });
+        res.status(200).json({ message: "Se ha enviado un enlace de recuperación a tu correo." });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Error al procesar la solicitud de restablecimiento de contraseña" });
@@ -104,13 +104,17 @@ exports.forgotPassword = async (req, res) => {
 };
 
 exports.updatePassword = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, token } = req.body;
 
     if (!email || !password) {
         return res.status(400).json({ message: "Todos los campos son requeridos" });
     }
 
-    try {   
+    try {
+        
+        const isValidToken = await Token.findOne({where: { token }});
+        if (!isValidToken || isValidToken === null ) return res.status(409).json({ message: "El token es inválido, vuelve a solicitar la recuperación de tu contraseña." });
+
         // Verifica si el usuario ya existe
         const existingUser = await User.findOne({ where: { email } });
         console.log(existingUser);
@@ -123,7 +127,7 @@ exports.updatePassword = async (req, res) => {
             const userUpdated = await User.findOne({ where: { email } });
             return res.status(201).json({ message: "Contraseña actualizada con éxito.", user: userUpdated });
         }
-        return res.status(409).json({ message: "Por favor registre un correo electrónico corporativo válido, sólo las personas invitadas al evento podrán asistir." });
+        return res.status(409).json({ message: "El correo solicitado es inválido." });
 
         
     } catch (error) {
