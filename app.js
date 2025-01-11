@@ -48,7 +48,7 @@ app.post('/verify-captcha', async (req, res) => {
       // Realizar la verificación con la API de Cloudflare Turnstile
       const response = await axios.post('https://challenges.cloudflare.com/turnstile/v0/siteverify', null, {
         params: {
-          secret: 'TU_SECRET_KEY',  // La clave secreta que obtuviste en Cloudflare
+          secret: process.env.CF_SECRET_KEY, //'TU_SECRET_KEY',  // La clave secreta que obtuviste en Cloudflare
           response: token,
         },
       });
