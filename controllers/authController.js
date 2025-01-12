@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user"); // Importa el modelo User desde Sequelize
-const Token = require("../models/token");
+const TokenEmail = require("../models/tokenEmail");
 const sendMessage = require("../helpers/sendgrid");
 
 const SKJWT = 'HelloMexico2024';
@@ -88,7 +88,7 @@ exports.forgotPassword = async (req, res) => {
         const resetToken = jwt.sign({ email: user.email }, SKJWT, { expiresIn: "15m" });
         const resetLink = `${FORGOT_PASSWORD_URL}recovery-password?token=${resetToken}`;
 
-        await Token.create({token: resetToken, type: 1, status: 1})
+        await TokenEmail.create({token: resetToken, type: 1, status: 1, email})
 
         const to = user.email;
         const subject = 'Recuperación de contraseña';
@@ -104,19 +104,24 @@ exports.forgotPassword = async (req, res) => {
 };
 
 exports.updatePassword = async (req, res) => {
-    const { email, password, token } = req.body;
+    const { password, token } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({ message: "Todos los campos son requeridos" });
+    if (password) {
+        return res.status(400).json({ message: "El campo password es requerido." });
+    }
+
+    if (!token || !password) {
+        return res.status(401).json({ message: "El campo token es requerido" });
     }
 
     try {
         
-        const isValidToken = await Token.findOne({where: { token }});
+        const isValidToken = await TokenEmail.findOne({where: { token }});
+        console.log('IS VALID TOKEN ', isValidToken);
         if (!isValidToken || isValidToken === null ) return res.status(409).json({ message: "El token es inválido, vuelve a solicitar la recuperación de tu contraseña." });
 
         // Verifica si el usuario ya existe
-        const existingUser = await User.findOne({ where: { email } });
+        const existingUser = await User.findOne({ where: { email: isValidToken.email } });
         console.log(existingUser);
         if (existingUser) {
 
@@ -124,7 +129,7 @@ exports.updatePassword = async (req, res) => {
             existingUser.password = hashedPassword;
             await existingUser.save();
 
-            const userUpdated = await User.findOne({ where: { email } });
+            const userUpdated = await User.findOne({ where: { email: isValidToken.email } });
             return res.status(201).json({ message: "Contraseña actualizada con éxito.", user: userUpdated });
         }
         return res.status(409).json({ message: "El correo solicitado es inválido." });
