@@ -106,11 +106,11 @@ exports.forgotPassword = async (req, res) => {
 exports.updatePassword = async (req, res) => {
     const { password, token } = req.body;
 
-    if (password) {
+    if (!password) {
         return res.status(400).json({ message: "El campo password es requerido." });
     }
 
-    if (!token || !password) {
+    if (!token) {
         return res.status(401).json({ message: "El campo token es requerido" });
     }
 
