@@ -46,28 +46,56 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({ message: "Todos los campos son requeridos" });
+        return res.status(400).json({ message: "El campo email y contraseña son obligatorios." });
     }
 
     try {
-        // Busca el usuario en la base de datos
         const user = await User.findOne({ where: { email } });
         if (!user) {
             return res.status(404).json({ message: "Usuario no encontrado" });
         }
 
-        // Compara la contraseña ingresada con la almacenada
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({ message: "Credenciales inválidas" });
         }
 
-        // Genera un token JWT
-        const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
-        res.status(200).json({ message: "Inicio de sesión exitoso", token });
+
+        const token = jwt.sign({
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            company: user.company,
+            position: user.position,
+            group: user.group,
+            distributor: user.distributor,
+            mobile: user.mobile,
+            origin: user.origin,
+            isVip: user.isVip,
+            createdAt: user.createdAt,
+        }, process.env.JWT_SECRET || SKJWT, { expiresIn: "1h" });
+        res.status(200).json({
+            message: "Inicio de sesión exitoso",
+            token,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                company: user.company,
+                position: user.position,
+                group: user.group,
+                distributor: user.distributor,
+                mobile: user.mobile,
+                origin: user.origin,
+                isVip: user.isVip,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
+                deletedAt: user.deletedAt,
+            },
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Error al iniciar sesión" });
+        res.status(500).json({ message: "Error al iniciar sesión", error });
     }
 };
 
