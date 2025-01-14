@@ -41,28 +41,27 @@ app.get("/", (req, res) => {
     }
 })();
 
-app.post('/verify-captcha', async (req, res) => {
-    const { token } = req.body; // El token enviado desde el frontend
+app.post('/validate-captcha', async (req, res) => {
+  app.post("/validate-captcha", async (req, res) => {
+    const { token } = req.body;
+    const secretKey = "6LcnprcqAAAAAE8-QmdscQ6nL0FQZGxrxlHo4Wuu"; // Reemplaza con tu Secret Key
   
-    try {
-      // Realizar la verificación con la API de Cloudflare Turnstile
-      const response = await axios.post('https://challenges.cloudflare.com/turnstile/v0/siteverify', null, {
-        params: {
-          secret: process.env.CF_SECRET_KEY, //'TU_SECRET_KEY',  // La clave secreta que obtuviste en Cloudflare
-          response: token,
-        },
-      });
-  
-      if (response.data.success) {
-        res.send('Captcha verificado correctamente');
-      } else {
-        res.status(400).send('Captcha inválido');
+    const response = await fetch(
+      `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`,
+      {
+        method: "POST",
       }
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error al verificar el captcha');
+    );
+  
+    const data = await response.json();
+  
+    if (data.success) {
+      res.json({ success: true });
+    } else {
+      res.json({ success: false, error: data["error-codes"] });
     }
   });
+});
   
 
 
