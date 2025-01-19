@@ -5,12 +5,15 @@ const sendMessage = require("../helpers/sendgrid");
 const User = require("../models/user");
 const Invitation = require("../models/invitation");
 const Room = require("../models/room");
+const dotenv = require("dotenv");
+dotenv.config();
+
 
 const urlConfirmOrDeniedRoom = 'https://acelerandooportunidades2025.com/step2';
 const templates = {
-    confirmOrDeniedRoom : 'd-ac95f38cc90b428781055bc8079a38e8',
-    confirmOrDeniedRoomForSenderUser : 'd-77c9e6a2069547ef940c0e128c87a445',
-    confirmEvent: 'd-9e6b44a8ebf541e9ae5be24b3f0cb82d',
+    confirmOrDeniedRoom : process.env.SG_TEMPLATE_confirmOrDeniedRoom,
+    confirmOrDeniedRoomForSenderUser : process.env.SG_TEMPLATE_confirmOrDeniedRoomForSenderUser,
+    confirmEvent: process.env.SG_TEMPLATE_confirmEvent,
 };
 exports.confirm = async (req, res) => {
 

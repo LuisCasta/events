@@ -48,7 +48,7 @@ app.get("/", (req, res) => {
 app.post('/validate-captcha', async (req, res) => {
   app.post("/validate-captcha", async (req, res) => {
     const { token } = req.body;
-    const secretKey = "6LcnprcqAAAAAE8-QmdscQ6nL0FQZGxrxlHo4Wuu"; // Reemplaza con tu Secret Key
+    const secretKey = process.env.CAPTCHA_API_KEY; // Reemplaza con tu Secret Key
   
     const response = await fetch(
       `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`,
