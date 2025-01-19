@@ -14,7 +14,9 @@ const templates = {
     confirmOrDeniedRoom : process.env.SG_TEMPLATE_confirmOrDeniedRoom,
     confirmOrDeniedRoomForSenderUser : process.env.SG_TEMPLATE_confirmOrDeniedRoomForSenderUser,
     confirmEvent: process.env.SG_TEMPLATE_confirmEvent,
+    confirmOrDeniedResponse: process.env.SG_TEMPLATE_confirmRoom
 };
+
 exports.confirm = async (req, res) => {
 
     try {
@@ -162,6 +164,67 @@ exports.confirm = async (req, res) => {
         
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: "Error al registrar el usuario", error });
+        return res.status(500).json({ message: "Error al confirmar la asistencia al evento.", error });
+    }
+};
+
+exports.confirmOrDecline = async (req, res) => {
+
+    try {
+        const { 
+            userId,
+            isConfirm, // 1 o 0
+            token,
+        } = req.body;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verificar el token
+
+        if (!decoded) { // Verificación extra, aunque innecesaria
+            return res.status(401).json({ message: "Token inválido" });
+        }
+
+        if (!userId) return res.status(400).json({ message: "El campo userId es requerido" });
+
+        if (isConfirm > 1) return res.status(400).json({ message: "El campo confirm no es correcto, solo puede aceptar o declinar." });
+
+
+        const user = await User.findByPk(userId);
+        if (!user) return res.status(400).json({ message: "Usuario no encontrado.", user });
+
+        const ExistInvitation = await Invitation.findOne({where:{userReceiverId: userId}});
+        if (!ExistInvitation) return res.status(400).json({ message: "Invitación no encontrada.", ExistInvitation });
+
+        const room = await Room.update({
+            invitationStatus: 'confirm'
+        },
+        {where:{companionId: userId}})
+
+        if (!room) return res.status(400).json({ message: "Habitación no confirmada.", room });
+
+
+        const updatedInvitation = await Invitation.update({
+            status: 'confirm',
+            respondedAt: new Date()
+        }, {where:{userReceiverId: userId}})
+
+        if (!updatedInvitation) return res.status(400).json({ message: "Invitación no actualizada.", updatedInvitation });
+
+        const to = user.email;
+        const subject = 'Confirmación de conexión de habitación';
+        const text = 'Confirmación exitosa.';
+        const templateId = templates.confirmOrDeniedResponse;
+        const dynamicTemplateData = {};
+        await sendMessage.sendMessage(to,subject,text,templateId, dynamicTemplateData);
+
+        return res.status(200).json({
+            message: "Confirmación de conexión de habitación.",
+            room,
+            updatedInvitation
+        });
+
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Error al confirmar / rechazar la habitació.", error });
     }
 };
