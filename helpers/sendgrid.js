@@ -2,10 +2,10 @@ const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 
 
-const fromEmail = 'eventos@grupoamasb.mx';
+const fromEmail = 'info@acelerandooportunidades2025.com';
 const apiKeySendGrid = process.env.API_KEY;
 
-exports.sendMessage = async (to, subject, text) => {
+exports.sendMessage = async (to, subject, text, templateId, dynamicTemplateData) => {
   try {
 
     // process.env.SENDGRID_API_KEY
@@ -17,7 +17,9 @@ exports.sendMessage = async (to, subject, text) => {
       to, // 'test@example.com', // Change to your recipient
       from, // 'test@example.com', // Change to your verified sender
       subject, // 'Sending with SendGrid is Fun',
-      text: `${text} Haz quedado registrado en nuestro sitio web "Creando oportunidades 2025.`,
+      text,
+      templateId,
+      dynamicTemplateData: dynamicTemplateData
     };
 
     await sgMail.send(msg);

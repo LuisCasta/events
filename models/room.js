@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const Flight = sequelize.define('Flight', {
-    idFlight: {
+const Room = sequelize.define('Room', {
+    idRoom: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
@@ -11,35 +11,19 @@ const Flight = sequelize.define('Flight', {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    firstNameAirline: {
-        type: DataTypes.STRING,
+    isIndividualRoom: {
+        type: DataTypes.INTEGER,
         allowNull: true,
     },
-    firstFlightNumber: {
-        type: DataTypes.STRING,
+    wantsToShare : {
+        type: DataTypes.INTEGER,
         allowNull: true,
     },
-    firstDate: {
-        type: DataTypes.DATE,
+    companionId: {
+        type: DataTypes.INTEGER,
         allowNull: true,
     },
-    firstBoardingTime: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    lastNameAirline: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    lastFlightNumber: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    lastDate: {
-        type: DataTypes.DATE,
-        allowNull: true,
-    },
-    lastBoardingTime: {
+    invitationStatus: {
         type: DataTypes.STRING,
         allowNull: true,
     },
@@ -56,8 +40,8 @@ const Flight = sequelize.define('Flight', {
         allowNull: true
     }
 }, {
-    tableName: 'Flight',
+    tableName: 'Room',
     timestamps: false,
 });
 
-module.exports = Flight;
+module.exports = Room;

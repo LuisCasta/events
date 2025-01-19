@@ -17,11 +17,15 @@ app.use(bodyParser.json());
 
 // Rutas
 const authRoutes = require("./routes/authRoutes");
+const flightRoutes = require("./routes/eventRoutes");
+
 app.use("/api/auth", authRoutes);
+app.use("/api/event", flightRoutes);
+
 
 // Ruta base
 app.get("/", (req, res) => {
-    res.send("Bienvenido a la API de autenticación");
+    res.send("Bienvenido a la API de BBVA");
 });
 
 // Iniciar el servidor y conectar a la base de datos

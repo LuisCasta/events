@@ -1,46 +1,30 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const Flight = sequelize.define('Flight', {
-    idFlight: {
+const Flight = sequelize.define('invitation', {
+    idInvitation: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
-    userId: {
+    userSenderId: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    firstNameAirline: {
+    userReceiverId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    status : {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    firstFlightNumber: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    firstDate: {
+    sentAt: {
         type: DataTypes.DATE,
         allowNull: true,
     },
-    firstBoardingTime: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    lastNameAirline: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    lastFlightNumber: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    lastDate: {
+    respondedAt : {
         type: DataTypes.DATE,
-        allowNull: true,
-    },
-    lastBoardingTime: {
-        type: DataTypes.STRING,
         allowNull: true,
     },
     createdAt: {
@@ -56,7 +40,7 @@ const Flight = sequelize.define('Flight', {
         allowNull: true
     }
 }, {
-    tableName: 'Flight',
+    tableName: 'invitation',
     timestamps: false,
 });
 

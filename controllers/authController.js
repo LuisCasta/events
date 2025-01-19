@@ -30,7 +30,7 @@ exports.register = async (req, res) => {
             const to = userUpdated.email;
             const subject = 'Registro exitoso';
             const text = userUpdated.name;
-            const isSendEmail = await sendMessage.sendMessage(to,subject,text);
+            const isSendEmail = await sendMessage.sendMessage(to,subject,`${text} Haz quedado registrado en nuestro sitio web "Creando oportunidades 2025.` );
             return res.status(201).json({ message: "Usuario registrado con éxito.", user: userUpdated, statusEmail: isSendEmail });
         }
         return res.status(409).json({ message: "Por favor registre un correo electrónico corporativo válido, sólo las personas invitadas al evento podrán asistir." });
