@@ -8,7 +8,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 
-const urlConfirmOrDeniedRoom = 'https://acelerandooportunidades2025.com/step2';
+const urlConfirmOrDeniedRoom = 'https://acelerandooportunidades2025.com?step2';
 const templates = {
     confirmOrDeniedRoom : process.env.SG_TEMPLATE_confirmOrDeniedRoom,
     confirmOrDeniedRoomForSenderUser : process.env.SG_TEMPLATE_confirmOrDeniedRoomForSenderUser,
@@ -113,7 +113,7 @@ exports.confirm = async (req, res) => {
                 const dynamicTemplateDataInvitation2 = { subject: subjectRemitent };
                 await sendMessage.sendEmailWithTemplate(toUserRemitent,subjectRemitent,textRemitent, templateIdInvitation2, dynamicTemplateDataInvitation2);
 
-                const toConfirmed = emailCompanion;
+                const toConfirmed = user.email;
                 const subjectConfirmed = 'Confirmación de asistencia exitosa';
                 const textConfirmed = 'Confirmación exitosa.';
                 const templateIdConfirmed = templates.confirmEvent;
