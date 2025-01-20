@@ -19,7 +19,7 @@ exports.sendMessage = async (to, subject, text, templateId, dynamicTemplateData)
       subject, // 'Sending with SendGrid is Fun',
       text,
       templateId,
-      dynamicTemplateData: dynamicTemplateData
+      dynamic_template_data: dynamicTemplateData
     };
 
     await sgMail.send(msg);
