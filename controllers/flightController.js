@@ -1,4 +1,3 @@
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Flight = require("../models/flight"); // Importa el modelo User desde Sequelize
 const sendMessage = require("../helpers/sendgrid");
@@ -229,3 +228,29 @@ exports.confirmOrDecline = async (req, res) => {
         return res.status(500).json({ message: "Error al confirmar / rechazar la habitació.", error });
     }
 };
+
+exports.getInvitationData = async (req, res) => {
+
+    try {
+        const { userId } = req.body;
+
+        const user = await User.findByPk(userId);
+        if(!user) return res.status(400).json({ message: "Usuario no encontrado.", user, code: 409 });
+
+        const dataInvitation = await Invitation.findOne({where:{userReceiverId: userId}})
+        if(!dataInvitation) return res.status(400).json({ message: "Invitación no encontrada para el usuario.", dataInvitation, code: 411 });
+
+        const userData = await User.findByPk(dataInvitation.userSenderId);
+        if(!userData) return res.status(400).json({ message: "usuario anfitrión no encontrado.", userData, code: 412 });  
+
+        return res.status(200).json({
+            message: "Usuario anfitrión encontrado exitosamente.",
+            hostUser: userData,
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({ message: "Error al buscar los datos del anfitrión.", error });
+    }
+};
+
