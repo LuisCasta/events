@@ -1,4 +1,6 @@
 const sgMail = require('@sendgrid/mail');
+const axios = require('axios');
+
 require('dotenv').config();
 
 
@@ -26,6 +28,48 @@ exports.sendMessage = async (to, subject, text, templateId, dynamicTemplateData)
     console.log('Email sent');
   } catch (error) {
     console.error('Error sending email:', error);
+  }
+};
+
+exports.sendEmailWithTemplate = async (to, subject, text, templateId, dynamicTemplateData) => {
+  try {
+    const apiKey = apiKeySendGrid;
+
+    // Configura el cuerpo de la petición
+    const emailData = {
+      personalizations: [
+        {
+          to : [
+            {
+              email: to,
+              name: ""
+            },
+          ],
+          subject: subject,
+          dynamic_template_data: dynamicTemplateData
+        }
+      ],
+      from: {
+        email: fromEmail,
+      },
+      template_id: templateId, // ID del template en SendGrid
+    };
+
+    // Realiza la solicitud POST a la API de SendGrid
+    const response = await axios.post(
+      'https://api.sendgrid.com/v3/mail/send',
+      emailData,
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`, // Enviar el API Key en el encabezado
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    console.log('Email sent successfully:', response.status);
+  } catch (error) {
+    console.error('Error sending email:', error.response?.data || error.message);
   }
 };
 

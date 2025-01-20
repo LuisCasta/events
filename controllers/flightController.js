@@ -100,25 +100,26 @@ exports.confirm = async (req, res) => {
                 const text = 'Esta es una solicitud de habitación compartida';
                 const templateIdInvitation = templates.confirmOrDeniedRoom;
                 const dynamicTemplateDataInvitation = {
-                    "Correo_Destinatario": to,
-                    "Correo_Solicitante": user.email,
-                    "Confirmar_Denegar": urlConfirmOrDeniedRoom,
+                    Correo_Destinatario: to,
+                    Correo_Solicitante: user.email,
+                    Confirmar_Denegar: urlConfirmOrDeniedRoom,
+                    subject,
                 };
-                await sendMessage.sendMessage(to,subject,text,templateIdInvitation, dynamicTemplateDataInvitation);
+                await sendMessage.sendEmailWithTemplate(to,subject,text,templateIdInvitation, dynamicTemplateDataInvitation);
 
                 const toUserRemitent = user.email;
                 const subjectRemitent = 'Solicitud de habitación Enviada';
                 const textRemitent = `Haz enviado una solicitud de habitación a ${emailCompanion}`;
                 const templateIdInvitation2 = templates.confirmOrDeniedRoomForSenderUser;
-                const dynamicTemplateDataInvitation2 = {};
-                await sendMessage.sendMessage(toUserRemitent,subjectRemitent,textRemitent, templateIdInvitation2, dynamicTemplateDataInvitation2);
+                const dynamicTemplateDataInvitation2 = { subject: subjectRemitent };
+                await sendMessage.sendEmailWithTemplate(toUserRemitent,subjectRemitent,textRemitent, templateIdInvitation2, dynamicTemplateDataInvitation2);
 
                 const toConfirmed = emailCompanion;
                 const subjectConfirmed = 'Confirmación de asistencia exitosa';
                 const textConfirmed = 'Confirmación exitosa.';
                 const templateIdConfirmed = templates.confirmEvent;
-                const dynamicTemplateDataConfirmed = {};
-                await sendMessage.sendMessage(toConfirmed,subjectConfirmed,textConfirmed,templateIdConfirmed, dynamicTemplateDataConfirmed);
+                const dynamicTemplateDataConfirmed = { subject: subjectConfirmed};
+                await sendMessage.sendEmailWithTemplate(toConfirmed,subjectConfirmed,textConfirmed,templateIdConfirmed, dynamicTemplateDataConfirmed);
 
                 return res.status(200).json({ message: "Confirmación de asistencia exitosa. Haz solicitado una habitación compartida, revisa tu correo.", details: {
                     room,
@@ -139,8 +140,8 @@ exports.confirm = async (req, res) => {
                 const subject = 'Confirmación de asistencia exitosa';
                 const text = 'Confirmación exitosa.';
                 const templateId = templates.confirmEvent;
-                const dynamicTemplateData = {};
-                await sendMessage.sendMessage(to,subject,text,templateId, dynamicTemplateData);
+                const dynamicTemplateData = { subject };
+                await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplateData);
 
                 return res.status(200).json({ message: "Confirmación de asistencia exitosa. Haz solicitado una habitación para ti.", details: {
                     room,
@@ -154,8 +155,8 @@ exports.confirm = async (req, res) => {
             const subject = 'Confirmación de asistencia exitosa';
             const text = 'Confirmación exitosa.';
             const templateId = templates.confirmEvent;
-            const dynamicTemplateData = {};
-            await sendMessage.sendMessage(to,subject,text,templateId, dynamicTemplateData);
+            const dynamicTemplateData = { subject };
+            await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplateData);
 
             return res.status(200).json({ message: "Confirmación de asistencia exitosa.", details: {
                 flight,
@@ -213,8 +214,8 @@ exports.confirmOrDecline = async (req, res) => {
         const subject = 'Confirmación de conexión de habitación';
         const text = 'Confirmación exitosa.';
         const templateId = templates.confirmOrDeniedResponse;
-        const dynamicTemplateData = {};
-        await sendMessage.sendMessage(to,subject,text,templateId, dynamicTemplateData);
+        const dynamicTemplateData = { subject };
+        await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplateData);
 
         return res.status(200).json({
             message: "Confirmación de conexión de habitación.",
