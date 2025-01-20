@@ -7,6 +7,14 @@ const sendMessage = require("../helpers/sendgrid");
 const SKJWT = 'HelloMexico2024';
 const FORGOT_PASSWORD_URL = 'https://acelerandooportunidades2025.com/';
 
+const templates = {
+    confirmOrDeniedRoom : process.env.SG_TEMPLATE_confirmOrDeniedRoom,
+    confirmOrDeniedRoomForSenderUser : process.env.SG_TEMPLATE_confirmOrDeniedRoomForSenderUser,
+    confirmEvent: process.env.SG_TEMPLATE_confirmEvent,
+    confirmOrDeniedResponse: process.env.SG_TEMPLATE_confirmRoom,
+    recoveryPassword: process.env.SG_TEMPLATE_recoveryPassword,
+};
+
 exports.register = async (req, res) => {
     const { email, password } = req.body;
 
@@ -118,11 +126,18 @@ exports.forgotPassword = async (req, res) => {
 
         await TokenEmail.create({token: resetToken, type: 1, status: 1, email})
 
+
         const to = user.email;
         const subject = 'Recuperación de contraseña';
-        const text = resetLink;
+        const templateId = templates.recoveryPassword;
+        const text = '';
+        const dynamicTemplate = {
+            Recuperar_Contra: resetLink,
+            subject
+        };
+        await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplate);
 
-        await sendMessage.sendMessagePassword(to,subject,text);
+        // await sendMessage.sendMessagePassword(to,subject,text);
 
         res.status(200).json({ message: "Se ha enviado un enlace de recuperación a tu correo." });
     } catch (error) {
