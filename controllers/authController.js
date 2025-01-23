@@ -13,6 +13,7 @@ const templates = {
     confirmEvent: process.env.SG_TEMPLATE_confirmEvent,
     confirmOrDeniedResponse: process.env.SG_TEMPLATE_confirmRoom,
     recoveryPassword: process.env.SG_TEMPLATE_recoveryPassword,
+    confirmSignUp: process.env.SG_TEMPLATE_confirmSignUp
 };
 
 exports.register = async (req, res) => {
@@ -37,9 +38,14 @@ exports.register = async (req, res) => {
             const userUpdated = await User.findOne({ where: { email } });
             const to = userUpdated.email;
             const subject = 'Registro exitoso';
-            const text = userUpdated.name;
-            const isSendEmail = await sendMessage.sendMessage(to,subject,`${text} Haz quedado registrado en nuestro sitio web "Creando oportunidades 2025.` );
-            return res.status(201).json({ message: "Usuario registrado con éxito.", user: userUpdated, statusEmail: isSendEmail });
+            const templateId = templates.confirmSignUp;
+            const text = '';
+            const dynamicTemplate = {
+                subject,
+                Iniciar_Sesion: 'https://acelerandooportunidades2025.com/'
+            };
+            await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplate);
+            return res.status(201).json({ message: "Usuario registrado con éxito.", user: userUpdated });
         }
         return res.status(409).json({ message: "Por favor registre un correo electrónico corporativo válido, sólo las personas invitadas al evento podrán asistir." });
 
