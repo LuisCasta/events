@@ -43,8 +43,8 @@ exports.confirm = async (req, res) => {
         const user = await User.findByPk(userId);
         if (!user) return res.status(400).json({ message: "Usuario no encontrado.", user });
 
-        const isFlightSend = await Flight.findOne({where: {userId}});
-        if (isFlightSend) return res.status(400).json({ message: "Ya has confirmado el evento.", user });
+        /* const isFlightSend = await Flight.findOne({where: {userId}});
+        if (isFlightSend) return res.status(400).json({ message: "Ya has confirmado el evento.", user }); */
 
         if(wantsToShare == 1){
             userCompanion = await User.findOne({where:{ email: emailCompanion}})
