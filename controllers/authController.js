@@ -42,7 +42,7 @@ exports.register = async (req, res) => {
             const text = '';
             const dynamicTemplate = {
                 subject,
-                Iniciar_Sesion: 'https://acelerandooportunidades2025.com/'
+                Iniciar_Sesion: 'https://acelerandooportunidades2025.com/?iniciarsesion=true'
             };
             await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplate);
             return res.status(201).json({ message: "Usuario registrado con éxito.", user: userUpdated });
