@@ -106,13 +106,6 @@ exports.confirm = async (req, res) => {
                 };
                 await sendMessage.sendEmailWithTemplate(to,subject,text,templateIdInvitation, dynamicTemplateDataInvitation);
 
-                const toUserRemitent = user.email;
-                const subjectRemitent = 'Solicitud de habitación Enviada';
-                const textRemitent = `Haz enviado una solicitud de habitación a ${emailCompanion}`;
-                const templateIdInvitation2 = templates.confirmOrDeniedRoomForSenderUser;
-                const dynamicTemplateDataInvitation2 = { subject: subjectRemitent };
-                await sendMessage.sendEmailWithTemplate(toUserRemitent,subjectRemitent,textRemitent, templateIdInvitation2, dynamicTemplateDataInvitation2);
-
                 const toConfirmed = user.email;
                 const subjectConfirmed = 'Confirmación de asistencia exitosa';
                 const textConfirmed = 'Confirmación exitosa.';
@@ -198,7 +191,11 @@ exports.confirmOrDecline = async (req, res) => {
         const ExistInvitation = await Invitation.findOne({where:{userReceiverId: userId}});
         if (!ExistInvitation) return res.status(400).json({ message: "Invitación no encontrada.", ExistInvitation });
 
+        const userSender = await User.findByPk(ExistInvitation.userSenderId);
+
         if (isConfirm == 1){
+
+
             room = await Room.update({
                 invitationStatus: 'confirm'
             },
@@ -214,11 +211,11 @@ exports.confirmOrDecline = async (req, res) => {
     
             if (!updatedInvitation) return res.status(400).json({ message: "Invitación no actualizada.", updatedInvitation });
     
-            const to = user.email;
+            const to = userSender.email;
             const subject = 'Confirmación de conexión de habitación';
             const text = 'Confirmación exitosa.';
             const templateId = templates.confirmOrDeniedResponse;
-            const dynamicTemplateData = { subject };
+            const dynamicTemplateData = { subject, Correo_Solicitante: user.email};
             await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplateData);
 
             messageInvitation = "Confirmación de conexión de habitación exitosa";
@@ -240,7 +237,7 @@ exports.confirmOrDecline = async (req, res) => {
     
             if (!updatedInvitation) return res.status(400).json({ message: "Invitación no actualizada.", updatedInvitation });
     
-            const to = user.email;
+            const to = userSender.email;
             const subject = 'Invitación rechazada con éxito.';
             const text = 'Invitación rechazada con éxito..';
             const templateId = templates.confirmOrDeniedRoomForSenderUser;
