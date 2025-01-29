@@ -43,6 +43,8 @@ exports.confirm = async (req, res) => {
         const user = await User.findByPk(userId);
         if (!user) return res.status(400).json({ message: "Usuario no encontrado.", user });
 
+        if (wantsRoom > 1) return res.status(400).json({ message: "El parámetro wantsRoom es inválido", user });
+
         /* const isFlightSend = await Flight.findOne({where: {userId}});
         if (isFlightSend) return res.status(400).json({ message: "Ya has confirmado el evento.", user }); */
 
@@ -70,7 +72,18 @@ exports.confirm = async (req, res) => {
 
         if(wantsRoom == 1){
 
-            if(wantsToShare == 1){
+            const to = user.email;
+            const subject = 'Confirmación de asistencia exitosa';
+            const text = 'Confirmación exitosa.';
+            const templateId = templates.confirmEvent;
+            const dynamicTemplateData = { subject };
+            await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplateData);
+
+            return res.status(200).json({ message: "Confirmación de asistencia exitosa.", details: {
+                flight,
+            } });
+
+        }else{
 
                 bodyInvitation = {
                     userSenderId: userId,
@@ -78,18 +91,6 @@ exports.confirm = async (req, res) => {
                     status: 'pending',
                     sentAt: new Date(),
                 }
-
-                bodyRoom = {
-                    userId: userId,
-                    isIndividualRoom: 0,
-                    wantsToShare: 1,
-                    companionId: userCompanion.idUser,
-                    invitationStatus: 'pending',
-                }
-
-                const room = await Room.create(bodyRoom);
-                if (!room) return res.status(400).json({ message: "Error al solicitar la habitación.", room });
-
 
                 const invitation = await Invitation.create(bodyInvitation);
                 if (!invitation) return res.status(400).json({ message: "Error al enviar la invitación de habitación compartida.", invitation });
@@ -114,45 +115,10 @@ exports.confirm = async (req, res) => {
                 await sendMessage.sendEmailWithTemplate(toConfirmed,subjectConfirmed,textConfirmed,templateIdConfirmed, dynamicTemplateDataConfirmed);
 
                 return res.status(200).json({ message: "Confirmación de asistencia exitosa. Haz solicitado una habitación compartida, revisa tu correo.", details: {
-                    room,
                     invitation,
                     flight,
                 } });
 
-            }else{
-                bodyRoom = {
-                    userId: userId,
-                    isIndividualRoom: 1,
-                }
-
-                const room = await Room.create(bodyRoom);
-                if (!room) return res.status(400).json({ message: "Error al solicitar la habitación.", room });
-
-                const to = user.email;
-                const subject = 'Confirmación de asistencia exitosa';
-                const text = 'Confirmación exitosa.';
-                const templateId = templates.confirmEvent;
-                const dynamicTemplateData = { subject };
-                await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplateData);
-
-                return res.status(200).json({ message: "Confirmación de asistencia exitosa. Haz solicitado una habitación para ti.", details: {
-                    room,
-                    flight,
-                } });
-
-            }
-        }else{
-
-            const to = user.email;
-            const subject = 'Confirmación de asistencia exitosa';
-            const text = 'Confirmación exitosa.';
-            const templateId = templates.confirmEvent;
-            const dynamicTemplateData = { subject };
-            await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplateData);
-
-            return res.status(200).json({ message: "Confirmación de asistencia exitosa.", details: {
-                flight,
-            } });
         }
         
     } catch (error) {
