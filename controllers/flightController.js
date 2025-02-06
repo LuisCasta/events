@@ -50,7 +50,7 @@ exports.confirm = async (req, res) => {
 
         if(wantsToShare == 1){
             userCompanion = await User.findOne({where:{ email: emailCompanion}})
-            if (!userCompanion) return res.status(400).json({ message: "No fué posible enviar solicitud de compartir, el correo que intenta compartir no es válido.", emailCompanion });
+            if (!userCompanion) return res.status(400).json({ message: "No fué posible enviar tu solicitud, el correo que intentas compartir no es válido.", emailCompanion });
 
         }
         
