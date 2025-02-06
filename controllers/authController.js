@@ -45,7 +45,22 @@ exports.register = async (req, res) => {
                 Iniciar_Sesion: 'https://acelerandooportunidades2025.com/?iniciarsesion=true'
             };
             await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplate);
-            return res.status(201).json({ message: "Usuario registrado con éxito.", user: userUpdated });
+
+            const token = jwt.sign({
+                id: userUpdated.id,
+                email: userUpdated.email,
+                name: userUpdated.name,
+                company: userUpdated.company,
+                position: userUpdated.position,
+                group: userUpdated.group,
+                distributor: userUpdated.distributor,
+                mobile: userUpdated.mobile,
+                origin: userUpdated.origin,
+                isVip: userUpdated.isVip,
+                createdAt: userUpdated.createdAt,
+            }, process.env.JWT_SECRET_KEY || SKJWT, { expiresIn: "1h" });
+
+            return res.status(201).json({ message: "Usuario registrado con éxito.", user: userUpdated, token });
         }
         return res.status(409).json({ message: "Por favor registre un correo electrónico corporativo válido, sólo las personas invitadas al evento podrán asistir." });
 
