@@ -29,6 +29,10 @@ exports.register = async (req, res) => {
         console.log(existingUser);
         if (existingUser) {
 
+            /* if(existingUser.password != null || existingUser.password != ''){
+                return res.status(409).json({ message: "El correo ya ha sido registrado." });
+            } */
+
             // Hashea la contraseña y crea el usuario en la base de datos
             const hashedPassword = await bcrypt.hash(password, 10);
 

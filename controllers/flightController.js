@@ -100,8 +100,8 @@ exports.confirm = async (req, res) => {
                 const text = 'Esta es una solicitud de habitación compartida';
                 const templateIdInvitation = templates.confirmOrDeniedRoom;
                 const dynamicTemplateDataInvitation = {
-                    Correo_Destinatario: to,
-                    Correo_Solicitante: user.email,
+                    Correo_Destinatario: userCompanion.name,
+                    Correo_Solicitante: user.name,
                     Confirmar_Denegar: urlConfirmOrDeniedRoom,
                     subject,
                 };
@@ -210,7 +210,7 @@ exports.confirmOrDecline = async (req, res) => {
             const dynamicTemplateData = { subject };
             await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplateData);
 
-            messageInvitation = "Habitación rechazada exitosamente.";
+            messageInvitation = "Respuesta de conexión de habitación.";
     
         }
         return res.status(200).json({
@@ -222,7 +222,7 @@ exports.confirmOrDecline = async (req, res) => {
         
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: "Error al confirmar / rechazar la habitació.", error });
+        return res.status(500).json({ message: "No fué posible confirmar o rechazar la invitación.", error });
     }
 };
 
