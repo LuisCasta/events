@@ -43,6 +43,10 @@ const Flight = sequelize.define('Flight', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    arrivalType: {
+        type: DataTypes.TINYINT, // 1, 2, 3
+        allowNull: true,
+    },
     createdAt: {
         type: DataTypes.DATE,
         allowNull: true

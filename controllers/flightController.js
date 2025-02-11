@@ -21,18 +21,19 @@ exports.confirm = async (req, res) => {
     try {
         const { 
             userId,
-            firstNameAirline,
-            firstFlightNumber,
+            firstNameAirline = '',
+            firstFlightNumber = '',
             firstDate,
             firstBoardingTime,
-            lastNameAirline,
-            lastFlightNumber,
+            lastNameAirline = '',
+            lastFlightNumber = '',
             lastDate,
             lastBoardingTime,
             wantsRoom, // 1 = si quiere habitación, 0 = no quiere habitación
             wantsToShare, // 1= si quiere compartir, 0= no quiere compartir
             emailCompanion, // email del socio con el que quiere compartir
-        } = req.body;
+            arrivalType, // 1= avión, 2= directo a hotel, 3 = en otro transporte al aeropuerto
+        } = req.body || {};
 
         let bodyRoom = {};
         let bodyInvitation = {};
@@ -65,6 +66,7 @@ exports.confirm = async (req, res) => {
             lastFlightNumber,
             lastDate,
             lastBoardingTime,
+            arrivalType
         });
 
         if (!flight) return res.status(400).json({ message: "Error al confirmar asistencia.", flight });
