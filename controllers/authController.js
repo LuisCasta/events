@@ -50,6 +50,8 @@ exports.register = async (req, res) => {
             };
             await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplate);
 
+            userUpdated.id = userUpdated.idUser;
+
             const token = jwt.sign({
                 id: userUpdated.id,
                 email: userUpdated.email,
@@ -64,7 +66,7 @@ exports.register = async (req, res) => {
                 createdAt: userUpdated.createdAt,
             }, process.env.JWT_SECRET_KEY || SKJWT, { expiresIn: "1h" });
 
-            return res.status(201).json({ message: "Usuario registrado con éxito.", user: userUpdated, token });
+            return res.status(201).json({ message: "Usuario registrado con éxito.", user: {...userUpdated.dataValues, id: userUpdated.idUser}, token });
         }
         return res.status(409).json({ message: "Por favor registre un correo electrónico corporativo válido, sólo las personas invitadas al evento podrán asistir." });
 
