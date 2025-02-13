@@ -13,7 +13,10 @@ const templates = {
     confirmOrDeniedRoom : process.env.SG_TEMPLATE_confirmOrDeniedRoom,
     confirmOrDeniedRoomForSenderUser : process.env.SG_TEMPLATE_confirmOrDeniedRoomForSenderUser,
     confirmEvent: process.env.SG_TEMPLATE_confirmEvent,
-    confirmOrDeniedResponse: process.env.SG_TEMPLATE_confirmRoom
+    confirmOrDeniedResponse: process.env.SG_TEMPLATE_confirmRoom,
+    confirmSolo: process.env.SG_TEMPLATE_confirmSolo,
+    rejectInvitation: process.env.SG_TEMPLATE_rejectInvitation,
+    aceptInvitation: process.env.SG_TEMPLATE_aceptInvitation,
 };
 
 exports.confirm = async (req, res) => {
@@ -77,7 +80,7 @@ exports.confirm = async (req, res) => {
             const to = user.email;
             const subject = 'Confirmación de asistencia exitosa';
             const text = 'Confirmación exitosa.';
-            const templateId = templates.confirmEvent;
+            const templateId = templates.confirmSolo;
             const dynamicTemplateData = { subject };
             await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplateData);
 
@@ -85,7 +88,7 @@ exports.confirm = async (req, res) => {
                 flight,
             } });
 
-        }else{
+        }else if (wantsToShare == 1){
 
                 bodyInvitation = {
                     userSenderId: userId,
@@ -121,6 +124,17 @@ exports.confirm = async (req, res) => {
                     flight,
                 } });
 
+        }else{
+            const to = user.email;
+            const subject = 'Confirmación de asistencia exitosa';
+            const text = 'Confirmación exitosa.';
+            const templateId = templates.confirmEvent;
+            const dynamicTemplateData = { subject };
+            await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplateData);
+
+            return res.status(200).json({ message: "Confirmación de asistencia exitosa.", details: {
+                flight,
+            } });
         }
         
     } catch (error) {
@@ -182,8 +196,8 @@ exports.confirmOrDecline = async (req, res) => {
             const to = userSender.email;
             const subject = 'Confirmación de conexión de habitación';
             const text = 'Confirmación exitosa.';
-            const templateId = templates.confirmOrDeniedResponse;
-            const dynamicTemplateData = { subject, Correo_Solicitante: user.email};
+            const templateId = templates.aceptInvitation;
+            const dynamicTemplateData = { subject, Correo_Solicitante: user.name};
             await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplateData);
 
             messageInvitation = "Confirmación de conexión de habitación exitosa";
@@ -208,7 +222,7 @@ exports.confirmOrDecline = async (req, res) => {
             const to = userSender.email;
             const subject = 'Respuesta de conexión de habitación.';
             const text = 'Respuesta de conexión de habitación...';
-            const templateId = templates.confirmOrDeniedRoomForSenderUser;
+            const templateId = templates.rejectInvitation;
             const dynamicTemplateData = { subject };
             await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplateData);
 
