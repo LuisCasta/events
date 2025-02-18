@@ -4,7 +4,9 @@ const sendMessage = require("../helpers/sendgrid");
 const User = require("../models/user");
 const Invitation = require("../models/invitation");
 const Room = require("../models/room");
+const { Sequelize, Op } = require('sequelize');
 const dotenv = require("dotenv");
+
 dotenv.config();
 
 
@@ -267,3 +269,25 @@ exports.getInvitationData = async (req, res) => {
     }
 };
 
+exports.getRecords = async (req, res) => {
+
+    try {
+        const users = await User.findAll({
+            where: {
+              password: {
+                [Sequelize.Op.ne]: null
+              },
+              idUser: {
+                [Sequelize.Op.notBetween]: [1, 7]
+              }
+            },
+            attributes:['name','company', 'position', 'group', 'distributor', 'email', 'isVip',]
+          });
+          
+        return res.status(200).json(users);
+
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({ message: "Error al obtener los usuarios.", error });
+    }
+};
