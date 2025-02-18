@@ -81,6 +81,7 @@ exports.confirm = async (req, res) => {
 
         if(wantsRoom == 1){
 
+            const room = await Room.create({userId, isIndividualRoom: 1,})
             const to = user.email;
             const subject = 'Confirmación de asistencia exitosa';
             const text = 'Confirmación exitosa.';
@@ -90,6 +91,7 @@ exports.confirm = async (req, res) => {
 
             return res.status(200).json({ message: "Confirmación de asistencia exitosa.", details: {
                 flight,
+                room
             } });
 
         }else if (wantsToShare == 1){
