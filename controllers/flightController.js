@@ -6,6 +6,8 @@ const Invitation = require("../models/invitation");
 const Room = require("../models/room");
 const { Sequelize, Op } = require('sequelize');
 const dotenv = require("dotenv");
+const sequelize = require('../config/database');
+
 
 dotenv.config();
 
@@ -291,3 +293,34 @@ exports.getRecords = async (req, res) => {
         return res.status(400).json({ message: "Error al obtener los usuarios.", error });
     }
 };
+
+exports.getRecordsConfirmed = async (req, res) => {
+    try {
+        // Ejecutar la consulta SQL directamente con sequelize.query
+        const results = await sequelize.query(`
+          SELECT DISTINCT
+              u.name, 
+              u.company, 
+              u.position, 
+              u.group, 
+              u.distributor, 
+              u.email, 
+              u.isVip
+          FROM 
+              User u
+          INNER JOIN 
+              Flight f ON u.idUser = f.userId
+          WHERE 
+              u.idUser NOT BETWEEN 1 AND 7
+              AND f.userId IS NOT NULL;
+        `, { type: sequelize.QueryTypes.SELECT });
+
+        // Retornar los resultados
+        return res.status(200).json(results);
+
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({ message: "Error al obtener los usuarios.", error });
+    }
+};
+
