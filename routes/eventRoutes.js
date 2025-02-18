@@ -8,5 +8,7 @@ router.post("/confirmOrDecline", flightController.confirmOrDecline);
 router.post("/getInvitationData", flightController.getInvitationData);
 router.get("/getUsers", flightController.getRecords);
 router.get("/getUsersConfirmed", flightController.getRecordsConfirmed);
+router.get("/getRecordsDetails", flightController.getRecordsConfirmedWithDetails);
+
 
 module.exports = router;

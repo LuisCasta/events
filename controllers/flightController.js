@@ -81,6 +81,12 @@ exports.confirm = async (req, res) => {
 
         if(wantsRoom == 1){
 
+            const invited = await Invitation.findOne({where: {userSenderId: userId}})
+            if (invited) return res.status(400).json({ message: "Ya cuentas con una solicitud de habitación compartida.", invited });
+
+            const haveInvitation = await Invitation.findOne({where: {userReceiverId: userId}})
+            if (haveInvitation) return res.status(400).json({ message: "Ya cuentas con una solicitud de habitación compartida.", haveInvitation });
+
             const room = await Room.create({userId, isIndividualRoom: 1,})
             const to = user.email;
             const subject = 'Confirmación de asistencia exitosa';
@@ -101,7 +107,13 @@ exports.confirm = async (req, res) => {
                     userReceiverId: userCompanion.idUser,
                     status: 'pending',
                     sentAt: new Date(),
-                }
+                };
+
+                const room = await Room.findOne({where: {userId}})
+                if (room) return res.status(400).json({ message: "El usuario que tratas de invitar no está disponible.", room });
+
+                const roomCompanion = await Room.findOne({where: {userId: userCompanion.idUser}})
+                if (roomCompanion) return res.status(400).json({ message: "El usuario que tratas de invitar no está disponible.", roomCompanion });
 
                 const invitation = await Invitation.create(bodyInvitation);
                 if (!invitation) return res.status(400).json({ message: "Error al enviar la invitación de habitación compartida.", invitation });
@@ -158,7 +170,6 @@ exports.confirmOrDecline = async (req, res) => {
             token,
         } = req.body;
 
-        let room = {};
         let updatedInvitation = {};
         let messageInvitation = '';
 
@@ -182,15 +193,6 @@ exports.confirmOrDecline = async (req, res) => {
         const userSender = await User.findByPk(ExistInvitation.userSenderId);
 
         if (isConfirm == 1){
-
-
-            room = await Room.update({
-                invitationStatus: 'confirm'
-            },
-            {where:{companionId: userId}})
-    
-            if (!room) return res.status(400).json({ message: "Habitación no confirmada.", room });
-    
     
             updatedInvitation = await Invitation.update({
                 status: 'confirm',
@@ -208,15 +210,7 @@ exports.confirmOrDecline = async (req, res) => {
 
             messageInvitation = "Confirmación de conexión de habitación exitosa";
     
-        }else{
-
-            const room = await Room.update({
-                invitationStatus: 'rejected'
-            },
-            {where:{companionId: userId}})
-    
-            if (!room) return res.status(400).json({ message: "Habitación no confirmada.", room });
-    
+        }else{    
     
             const updatedInvitation = await Invitation.update({
                 status: 'rejected',
@@ -237,7 +231,6 @@ exports.confirmOrDecline = async (req, res) => {
         }
         return res.status(200).json({
             message: messageInvitation,
-            room,
             updatedInvitation
         });
 
@@ -326,3 +319,66 @@ exports.getRecordsConfirmed = async (req, res) => {
     }
 };
 
+exports.getRecordsConfirmedWithDetails = async (req, res) => {
+    try {
+        // Ejecutar la consulta SQL directamente con sequelize.query
+        const results = await sequelize.query(`
+          SELECT DISTINCT 
+            u.name, 
+            u.company, 
+            u.position, 
+            u.group, 
+            u.distributor, 
+            u.email,
+            u.isVip,
+            f.firstNameAirline as 'Aerolinea Llegada',
+            f.firstFlightNumber as 'Vuelo Llegada',
+            f.firstDate as 'Fecha Llegada',
+            f.firstBoardingTime as 'Hora Llegada',
+            f.lastNameAirline as 'Aerolinea Salida',
+            f.lastFlightNumber as 'Vuelo Salida',
+            f.lastDate as 'Fecha Salida',
+            f.lastBoardingTime as 'Hora Salida',
+            CASE 
+                WHEN f.arrivalType = 1 THEN 'Avión'
+                WHEN f.arrivalType = 2 THEN 'Llega hotel'
+                WHEN f.arrivalType = 3 THEN 'Particular a aeropuerto'
+            ELSE 'Desconocido'
+            END AS 'Medio de llegada',
+            CASE
+                WHEN r.userId IS NOT NULL THEN 'Habitación Privada'
+                WHEN i.userSenderId = u.idUser THEN 'Habitación Compartida - Solicitud enviada'
+                WHEN i.userReceiverId = u.idUser THEN 'Habitación Compartida - Solicitud recibida'
+                ELSE 'Sin habitación, Sin Compartir'
+            END AS 'Tipo de reservación',
+             i.userSenderId,
+             i.userReceiverId,
+             i.status as 'Etatus de Invitación',
+             us.name as 'Nombre del Remitente',
+             us.email as 'Email del Remitente',
+             ur.name as 'Nombre del Invitado',
+             ur.email as 'Email del Invitado'
+            FROM 
+                User u
+            INNER JOIN 
+                Flight f ON u.idUser = f.userId
+            LEFT JOIN 
+                Room r ON u.idUser = r.userId
+            LEFT JOIN 
+                invitation i ON i.userSenderId = u.idUser OR i.userReceiverId = u.idUser
+            LEFT JOIN
+                User us ON i.userSenderId = us.idUser
+            LEFT JOIN 
+                User ur ON i.userReceiverId = ur.idUser
+            WHERE 
+                u.idUser NOT BETWEEN 1 AND 7;`, 
+        { type: sequelize.QueryTypes.SELECT });
+
+        // Retornar los resultados
+        return res.status(200).json(results);
+
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({ message: "Error al obtener los usuarios.", error });
+    }
+};
