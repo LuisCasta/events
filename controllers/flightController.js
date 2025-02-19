@@ -60,6 +60,7 @@ exports.confirm = async (req, res) => {
             userCompanion = await User.findOne({where:{ email: emailCompanion}})
             if (!userCompanion) return res.status(400).json({ message: "No fué posible enviar tu solicitud, el correo que intentas compartir no es válido.", emailCompanion });
 
+            if (userCompanion.isVip == 1) return res.status(400).json({ message: "El usuario que tratas de invitar no está disponible.", emailCompanion });
         }
         
 
