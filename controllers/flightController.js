@@ -62,22 +62,6 @@ exports.confirm = async (req, res) => {
 
             if (userCompanion.isVip == 1) return res.status(400).json({ message: "El usuario que tratas de invitar no está disponible.", emailCompanion });
         }
-        
-
-        const flight = await Flight.create({
-            userId,
-            firstNameAirline,
-            firstFlightNumber,
-            firstDate,
-            firstBoardingTime,
-            lastNameAirline,
-            lastFlightNumber,
-            lastDate,
-            lastBoardingTime,
-            arrivalType
-        });
-
-        if (!flight) return res.status(400).json({ message: "Error al confirmar asistencia.", flight });
 
 
         if(wantsRoom == 1){
@@ -87,6 +71,21 @@ exports.confirm = async (req, res) => {
 
             const haveInvitation = await Invitation.findOne({where: {userReceiverId: userId, status: 'confirm'}})
             if (haveInvitation) return res.status(400).json({ message: "Ya cuentas con una solicitud de habitación compartida.", haveInvitation });
+
+            const flight = await Flight.create({
+                userId,
+                firstNameAirline,
+                firstFlightNumber,
+                firstDate,
+                firstBoardingTime,
+                lastNameAirline,
+                lastFlightNumber,
+                lastDate,
+                lastBoardingTime,
+                arrivalType
+            });
+    
+            if (!flight) return res.status(400).json({ message: "No fué posible confirmar asistencia.", flight });
 
             const room = await Room.create({userId, isIndividualRoom: 1,})
             const to = user.email;
@@ -146,6 +145,21 @@ exports.confirm = async (req, res) => {
                 const invitation = await Invitation.create(bodyInvitation);
                 if (!invitation) return res.status(400).json({ message: "Error al enviar la invitación de habitación compartida.", invitation });
 
+                const flight = await Flight.create({
+                    userId,
+                    firstNameAirline,
+                    firstFlightNumber,
+                    firstDate,
+                    firstBoardingTime,
+                    lastNameAirline,
+                    lastFlightNumber,
+                    lastDate,
+                    lastBoardingTime,
+                    arrivalType
+                });
+        
+                if (!flight) return res.status(400).json({ message: "No fué posible confirmar la asistencia.", flight });
+
                 const to = emailCompanion;
                 const subject = 'Solicitud de habitación';
                 const text = 'Esta es una solicitud de habitación compartida';
@@ -171,6 +185,22 @@ exports.confirm = async (req, res) => {
                 } });
 
         }else{
+
+            const flight = await Flight.create({
+                userId,
+                firstNameAirline,
+                firstFlightNumber,
+                firstDate,
+                firstBoardingTime,
+                lastNameAirline,
+                lastFlightNumber,
+                lastDate,
+                lastBoardingTime,
+                arrivalType
+            });
+    
+            if (!flight) return res.status(400).json({ message: "No fué posible confirmar la asistencia.", flight });
+
             const to = user.email;
             const subject = 'Confirmación de asistencia exitosa';
             const text = 'Confirmación exitosa.';
@@ -185,7 +215,7 @@ exports.confirm = async (req, res) => {
         
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: "Error al confirmar la asistencia al evento.", error });
+        return res.status(500).json({ message: "No fué posible confirmar la asistencia al evento.", error });
     }
 };
 
