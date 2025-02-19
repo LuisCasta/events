@@ -173,9 +173,9 @@ exports.confirmOrDecline = async (req, res) => {
         let updatedInvitation = {};
         let messageInvitation = '';
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verificar el token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-        if (!decoded) { // Verificación extra, aunque innecesaria
+        if (!decoded) {
             return res.status(401).json({ message: "Token inválido" });
         }
 
@@ -183,9 +183,11 @@ exports.confirmOrDecline = async (req, res) => {
 
         if (isConfirm > 1) return res.status(400).json({ message: "El campo confirm no es correcto, solo puede aceptar o declinar." });
 
-
         const user = await User.findByPk(userId);
         if (!user) return res.status(400).json({ message: "Usuario no encontrado.", user });
+
+        const confirmed = await Flight.findOne({where:{userId}});
+        if(!confirmed) return res.status(400).json({message: 'Debes confirmar tu asistencia antes de aceptar o rechazar compartir habitación'});
 
         const ExistInvitation = await Invitation.findOne({where:{userReceiverId: userId}});
         if (!ExistInvitation) return res.status(400).json({ message: "Invitación no encontrada.", ExistInvitation });
@@ -237,7 +239,14 @@ exports.confirmOrDecline = async (req, res) => {
         
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: "No fué posible confirmar o rechazar la invitación.", error });
+        if (error instanceof jwt.TokenExpiredError) {
+            // Manejar el caso en que el token ha expirado
+            return res.status(401).json({ message: "Tu token ha expirado, comunicate a info@acelerandooportunidades2025.com" });
+        } else {
+            // Manejar otros posibles errores (por ejemplo, token mal formado)
+            return res.status(500).json({ message: "No fué posible confirmar o rechazar la invitación.", error});
+        }
+    
     }
 };
 

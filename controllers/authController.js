@@ -108,7 +108,7 @@ exports.login = async (req, res) => {
             origin: user.origin,
             isVip: user.isVip,
             createdAt: user.createdAt,
-        }, process.env.JWT_SECRET_KEY || SKJWT, { expiresIn: "1h" });
+        }, process.env.JWT_SECRET_KEY || SKJWT, { expiresIn: "20d" });
         res.status(200).json({
             message: "Inicio de sesión exitoso",
             token,
