@@ -115,7 +115,7 @@ exports.confirm = async (req, res) => {
 
                 // Valida que mi usuario o el del invitado no tenga habitación privada ya reservada
                 const room = await Room.findOne({where: {userId}})
-                if (room) return res.status(400).json({ message: "El usuario que tratas de invitar no está disponible.", room });
+                if (room) return res.status(400).json({ message: "Actualmente tienes una habitación reservada, no puedes compartir con otro usuario.", room });
 
                 const roomCompanion = await Room.findOne({where: {userId: userCompanion.idUser}})
                 if (roomCompanion) return res.status(400).json({ message: "El usuario que tratas de invitar no está disponible.", roomCompanion });
