@@ -109,6 +109,10 @@ exports.confirm = async (req, res) => {
                     sentAt: new Date(),
                 };
 
+                // valida que el usuario previamente ya haya sido confirmado
+                const confirmed = await Flight.findOne({where:{userId: userCompanion.idUser}});
+                if(!confirmed) return res.status(400).json({message: 'El usuario que tratas de invitar, no ha confirmado su asistencia, espera unos días a que confirme su asistencia al evento.'});
+
                 // Valida que mi usuario o el del invitado no tenga habitación privada ya reservada
                 const room = await Room.findOne({where: {userId}})
                 if (room) return res.status(400).json({ message: "El usuario que tratas de invitar no está disponible.", room });
