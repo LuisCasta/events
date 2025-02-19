@@ -81,10 +81,10 @@ exports.confirm = async (req, res) => {
 
         if(wantsRoom == 1){
 
-            const invited = await Invitation.findOne({where: {userSenderId: userId}})
+            const invited = await Invitation.findOne({where: {userSenderId: userId, status: 'confirm'}})
             if (invited) return res.status(400).json({ message: "Ya cuentas con una solicitud de habitación compartida.", invited });
 
-            const haveInvitation = await Invitation.findOne({where: {userReceiverId: userId}})
+            const haveInvitation = await Invitation.findOne({where: {userReceiverId: userId, status: 'confirm'}})
             if (haveInvitation) return res.status(400).json({ message: "Ya cuentas con una solicitud de habitación compartida.", haveInvitation });
 
             const room = await Room.create({userId, isIndividualRoom: 1,})
@@ -109,11 +109,34 @@ exports.confirm = async (req, res) => {
                     sentAt: new Date(),
                 };
 
+                // Valida que mi usuario o el del invitado no tenga habitación privada ya reservada
                 const room = await Room.findOne({where: {userId}})
                 if (room) return res.status(400).json({ message: "El usuario que tratas de invitar no está disponible.", room });
 
                 const roomCompanion = await Room.findOne({where: {userId: userCompanion.idUser}})
                 if (roomCompanion) return res.status(400).json({ message: "El usuario que tratas de invitar no está disponible.", roomCompanion });
+
+                // Valida que mi usuario no tenga habitación compartida, ya sea que yo invité o fuí invitado
+                const invited = await Invitation.findOne({where: {userSenderId: userId, status: {
+                    [Op.or]: ['confirm', 'pending'] // Soporta ambos estados: confirm y pending
+                }}})
+                if (invited) return res.status(400).json({ message: "Ya cuentas con una solicitud de habitación compartida.", invited });
+
+                const haveInvitation = await Invitation.findOne({where: {userReceiverId: userId, status: {
+                    [Op.or]: ['confirm', 'pending'] // Soporta ambos estados: confirm y pending
+                }}})
+                if (haveInvitation) return res.status(400).json({ message: "Ya cuentas con una solicitud de habitación compartida.", haveInvitation });
+
+                // Valida que el usuario al que se pretende invitar no tenga habitación compartida, ya sea que el invitó o fué invitado
+                const invitedReceiver = await Invitation.findOne({where: {userSenderId: userCompanion.idUser, status: {
+                    [Op.or]: ['confirm', 'pending'] // Soporta ambos estados: confirm y pending
+                }}})
+                if (invitedReceiver) return res.status(400).json({ message: "El usuario que intentas invitar ya cuenta con una habitación compartida.", invitedReceiver });
+
+                const haveInvitationReceiver = await Invitation.findOne({where: {userReceiverId: userCompanion.idUser, status: {
+                    [Op.or]: ['confirm', 'pending'] // Soporta ambos estados: confirm y pending
+                }}})
+                if (haveInvitationReceiver) return res.status(400).json({ message: "El usuario que intentas invitar ya cuenta con una habitación compartida.", haveInvitationReceiver });
 
                 const invitation = await Invitation.create(bodyInvitation);
                 if (!invitation) return res.status(400).json({ message: "Error al enviar la invitación de habitación compartida.", invitation });
@@ -183,14 +206,48 @@ exports.confirmOrDecline = async (req, res) => {
 
         if (isConfirm > 1) return res.status(400).json({ message: "El campo confirm no es correcto, solo puede aceptar o declinar." });
 
+        // este es el usuario que hace login e intenta confirmar/rechazar
         const user = await User.findByPk(userId);
         if (!user) return res.status(400).json({ message: "Usuario no encontrado.", user });
 
+        // valida que el usuario previamente ya haya sido confirmado
         const confirmed = await Flight.findOne({where:{userId}});
         if(!confirmed) return res.status(400).json({message: 'Debes confirmar tu asistencia antes de aceptar o rechazar compartir habitación'});
 
-        const ExistInvitation = await Invitation.findOne({where:{userReceiverId: userId}});
+        // valida que la invitación exista, suponiendo que mi userId es como invitado
+        const ExistInvitation = await Invitation.findOne(
+            {
+                where:{
+                    userReceiverId: userId, 
+                    status: {
+                        [Op.ne]: 'rejected' // Status diferente de 'rejected'
+                    }
+                }
+            });
         if (!ExistInvitation) return res.status(400).json({ message: "Invitación no encontrada.", ExistInvitation });
+
+        // validaciones para que no exista en room
+        const room = await Room.findOne({where: {userId}})
+        if (room) return res.status(400).json({ message: "Ya cuentas con una habitación privada.", room });
+
+        const roomUserSender = await Room.findOne({where: {userId: ExistInvitation.userSenderId}})
+        if (roomUserSender) return res.status(400).json({ message: "El usuario que solicitó habitación compartida, ya cuenta con una habitación privada.", roomUserSender });
+
+        // validaciones para saber que no ha compartido habitación con otros usuarios
+
+        // Valida que mi usuario no tenga habitación compartida, ya sea que yo invité o fuí invitado
+        const invited = await Invitation.findOne({where: {userSenderId: userId, status: 'confirm'}})
+        if (invited) return res.status(400).json({ message: "Ya cuentas con una solicitud de habitación compartida.", invited });
+
+        const haveInvitation = await Invitation.findOne({where: {userReceiverId: userId, status: 'confirm'}})
+        if (haveInvitation) return res.status(400).json({ message: "Ya cuentas con una solicitud de habitación compartida.", haveInvitation });
+
+        // Valida que el usuario al que se pretende invitar no tenga habitación compartida, ya sea que el invitó o fué invitado
+        const invitedReceiver = await Invitation.findOne({where: {userSenderId: ExistInvitation.userSenderId, status: 'confirm'}})
+        if (invitedReceiver) return res.status(400).json({ message: "El usuario que intentas invitar ya cuenta con una habitación compartida.", invitedReceiver });
+
+        const haveInvitationReceiver = await Invitation.findOne({where: {userReceiverId: ExistInvitation.userSenderId, status: 'confirm'}})
+        if (haveInvitationReceiver) return res.status(400).json({ message: "El usuario que intentas invitar ya cuenta con una habitación compartida.", haveInvitationReceiver });
 
         const userSender = await User.findByPk(ExistInvitation.userSenderId);
 
