@@ -223,10 +223,9 @@ exports.confirmOrDecline = async (req, res) => {
             {
                 where:{
                     userReceiverId: userId, 
-                    status: {
-                        [Op.ne]: 'rejected' // Status diferente de 'rejected'
-                    }
-                }
+                    status: 'pending'
+                },
+                order: [['idInvitation', 'DESC']]
             });
         if (!ExistInvitation) return res.status(400).json({ message: "Invitación no encontrada.", ExistInvitation });
 
@@ -257,12 +256,16 @@ exports.confirmOrDecline = async (req, res) => {
 
         if (isConfirm == 1){
     
-            updatedInvitation = await Invitation.update({
+            ExistInvitation.status = 'confirm';
+            ExistInvitation.respondedAt = new Date();
+            await ExistInvitation.save();
+
+            /* updatedInvitation = await Invitation.update({
                 status: 'confirm',
                 respondedAt: new Date()
-            }, {where:{userReceiverId: userId}})
+            }, {where:{userReceiverId: userId}}) */
     
-            if (!updatedInvitation) return res.status(400).json({ message: "Invitación no actualizada.", updatedInvitation });
+            // if (!updatedInvitation) return res.status(400).json({ message: "Invitación no actualizada.", updatedInvitation });
     
             const to = userSender.email;
             const subject = 'Confirmación de conexión de habitación';
@@ -275,13 +278,17 @@ exports.confirmOrDecline = async (req, res) => {
     
         }else{    
     
-            const updatedInvitation = await Invitation.update({
+            ExistInvitation.status = 'rejected';
+            ExistInvitation.respondedAt = new Date();
+            await ExistInvitation.save();
+
+            /* const updatedInvitation = await Invitation.update({
                 status: 'rejected',
                 respondedAt: new Date()
             }, {where:{userReceiverId: userId}})
     
             if (!updatedInvitation) return res.status(400).json({ message: "Invitación no actualizada.", updatedInvitation });
-    
+             */
             const to = userSender.email;
             const subject = 'Respuesta de conexión de habitación.';
             const text = 'Respuesta de conexión de habitación...';
@@ -294,7 +301,7 @@ exports.confirmOrDecline = async (req, res) => {
         }
         return res.status(200).json({
             message: messageInvitation,
-            updatedInvitation
+            // updatedInvitation
         });
 
         
