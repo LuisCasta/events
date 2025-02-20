@@ -63,6 +63,8 @@ exports.confirm = async (req, res) => {
             if (userCompanion.isVip == 1) return res.status(400).json({ message: "El usuario que tratas de invitar no está disponible.", emailCompanion });
         }
 
+        let currentDate = new Date(); // Fecha actual
+        currentDate.setHours(currentDate.getHours() - 6); 
 
         if(wantsRoom == 1){
 
@@ -82,7 +84,8 @@ exports.confirm = async (req, res) => {
                 lastFlightNumber,
                 lastDate,
                 lastBoardingTime,
-                arrivalType
+                arrivalType,
+                createdAt: currentDate
             });
     
             if (!flight) return res.status(400).json({ message: "No fué posible confirmar asistencia.", flight });
@@ -155,7 +158,8 @@ exports.confirm = async (req, res) => {
                     lastFlightNumber,
                     lastDate,
                     lastBoardingTime,
-                    arrivalType
+                    arrivalType,
+                    createdAt: currentDate
                 });
         
                 if (!flight) return res.status(400).json({ message: "No fué posible confirmar la asistencia.", flight });
@@ -196,7 +200,8 @@ exports.confirm = async (req, res) => {
                 lastFlightNumber,
                 lastDate,
                 lastBoardingTime,
-                arrivalType
+                arrivalType,
+                createdAt: currentDate
             });
     
             if (!flight) return res.status(400).json({ message: "No fué posible confirmar la asistencia.", flight });
