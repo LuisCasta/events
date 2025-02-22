@@ -362,10 +362,33 @@ exports.getInvitationData = async (req, res) => {
         const user = await User.findByPk(userId);
         if(!user) return res.status(400).json({ message: "Usuario no encontrado.", user, code: 409 });
 
-        const dataInvitation = await Invitation.findOne({where:{userReceiverId: userId}})
-        if(!dataInvitation) return res.status(400).json({ message: "Invitación no encontrada para el usuario.", dataInvitation, code: 411 });
+        const dataInvitation = await Invitation.findOne({
+            where: {
+              userReceiverId: userId,
+              status: { [Op.notIn]: ['rejected'] }  // Asegura que el status no sea ni 'rejected'
+            }
+          });
+          
+          if (!dataInvitation) {
+            return res.status(400).json({
+              message: "Invitación no encontrada.",
+              dataInvitation,
+              code: 411
+            });
+          }
 
-        const userData = await User.findByPk(dataInvitation.userSenderId);
+        const userData = await User.findByPk(dataInvitation.userSenderId, {attributes:[
+            'idUser',
+            'name',
+            'company',
+            'position',
+            'group',
+            'distributor',
+            'email',
+            'mobile',
+            'origin',
+            'isVip'
+        ]});
         if(!userData) return res.status(400).json({ message: "usuario anfitrión no encontrado.", userData, code: 412 });  
 
         return res.status(200).json({
