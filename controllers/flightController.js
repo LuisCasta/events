@@ -3,10 +3,12 @@ const Flight = require("../models/flight"); // Importa el modelo User desde Sequ
 const sendMessage = require("../helpers/sendgrid");
 const User = require("../models/user");
 const Invitation = require("../models/invitation");
+const Token = require("../models/token");
 const Room = require("../models/room");
 const { Sequelize, Op } = require('sequelize');
 const dotenv = require("dotenv");
 const sequelize = require('../config/database');
+const { v4: uuidv4 } = require('uuid');
 
 
 dotenv.config();
@@ -148,6 +150,21 @@ exports.confirm = async (req, res) => {
                 const invitation = await Invitation.create(bodyInvitation);
                 if (!invitation) return res.status(400).json({ message: "Error al enviar la invitación de habitación compartida.", invitation });
 
+                let uuid = uuidv4();
+
+                // Eliminar los guiones para obtener solo letras y números
+                uuid = uuid.replace(/-/g, '');
+
+                const tokenInvitation = await Token.create({
+                    token: uuid,
+                    invitationId: invitation.idInvitation,
+                    userSenderId: userId,
+                    userReceiverId: userCompanion.idUser,
+                    type: 1
+                });
+                if (!tokenInvitation) return res.status(400).json({ message: "Error al generar token para invitación, vuelve a inicar sesión.", invitation });
+
+
                 const flight = await Flight.create({
                     userId,
                     firstNameAirline,
@@ -162,7 +179,7 @@ exports.confirm = async (req, res) => {
                     createdAt: currentDate
                 });
         
-                if (!flight) return res.status(400).json({ message: "No fué posible confirmar la asistencia.", flight });
+                if (!invitation) return res.status(400).json({ message: "Error al enviar la invitación de habitación compartida.", invitation });
 
                 const to = emailCompanion;
                 const subject = 'Solicitud de habitación';
@@ -236,11 +253,11 @@ exports.confirmOrDecline = async (req, res) => {
         let updatedInvitation = {};
         let messageInvitation = '';
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        // const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-        if (!decoded) {
+        /* if (!decoded) {
             return res.status(401).json({ message: "Token inválido" });
-        }
+        } */
 
         if (!userId) return res.status(400).json({ message: "El campo userId es requerido" });
 
@@ -264,6 +281,17 @@ exports.confirmOrDecline = async (req, res) => {
                 order: [['idInvitation', 'DESC']]
             });
         if (!ExistInvitation) return res.status(400).json({ message: "Invitación no encontrada.", ExistInvitation });
+
+        const isValidToken = await Token.findOne({ where: {
+            token,
+            invitationId: ExistInvitation.idInvitation,
+            userSenderId: ExistInvitation.userSenderId,
+            userReceiverId: ExistInvitation.userReceiverId,
+            type: 1
+            
+            }
+        });
+        if (!isValidToken) return res.status(400).json({ message: "Token inválido para solicitud de habitación compartida.", ExistInvitation });
 
         // validaciones para que no exista en room
         const room = await Room.findOne({where: {userId}})
@@ -343,14 +371,7 @@ exports.confirmOrDecline = async (req, res) => {
         
     } catch (error) {
         console.error(error);
-        if (error instanceof jwt.TokenExpiredError) {
-            // Manejar el caso en que el token ha expirado
-            return res.status(401).json({ message: "Tu token ha expirado, comunicate a info@acelerandooportunidades2025.com" });
-        } else {
-            // Manejar otros posibles errores (por ejemplo, token mal formado)
-            return res.status(500).json({ message: "No fué posible confirmar o rechazar la invitación.", error});
-        }
-    
+        return res.status(500).json({ message: "No fué posible confirmar o rechazar la invitación.", error});
     }
 };
 
@@ -368,14 +389,32 @@ exports.getInvitationData = async (req, res) => {
               status: { [Op.notIn]: ['rejected'] }  // Asegura que el status no sea ni 'rejected'
             }
           });
+
           
           if (!dataInvitation) {
             return res.status(400).json({
-              message: "Invitación no encontrada.",
+              message: "Solicitud de habitación compartida no encontrada.",
               dataInvitation,
               code: 411
             });
           }
+
+          if (dataInvitation.status === 'confirm') return res.status(400).json({
+            message: "Ya has confirmado la solicitud de compartir habitación.",
+            dataInvitation,
+            code: 411
+          });
+
+        const invitationId = dataInvitation.idInvitation;
+
+        const token = await Token.findOne({ where: {
+            invitationId: invitationId,
+            userReceiverId: dataInvitation.userReceiverId,
+            type: 1
+            }
+        });
+        if (!token) return res.status(400).json({ message: "Token inválido para solicitud de habitación compartida.", dataInvitation });
+
 
         const userData = await User.findByPk(dataInvitation.userSenderId, {attributes:[
             'idUser',
@@ -394,6 +433,7 @@ exports.getInvitationData = async (req, res) => {
         return res.status(200).json({
             message: "Usuario anfitrión encontrado exitosamente.",
             hostUser: userData,
+            token
         });
 
     } catch (error) {

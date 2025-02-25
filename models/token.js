@@ -11,6 +11,18 @@ const Token = sequelize.define('Token', {
         type: DataTypes.TEXT,
         allowNull: false,
     },
+    invitationId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    userReceiverId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    userSenderId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
     type: {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -33,7 +45,7 @@ const Token = sequelize.define('Token', {
     }
 }, {
     tableName: 'Token',
-    timestamps: false,
+    timestamps: true,
 });
 
 module.exports = Token;
