@@ -5,7 +5,7 @@ const TokenEmail = require("../models/tokenEmail");
 const sendMessage = require("../helpers/sendgrid");
 
 const SKJWT = 'HelloMexico2024';
-const FORGOT_PASSWORD_URL = 'https://acelerandooportunidades2025.com/';
+const FORGOT_PASSWORD_URL = 'https://acelerandooportunidades-2025.com/';
 
 const templates = {
     confirmOrDeniedRoom : process.env.SG_TEMPLATE_confirmOrDeniedRoom,
@@ -46,7 +46,7 @@ exports.register = async (req, res) => {
             const text = '';
             const dynamicTemplate = {
                 subject,
-                Iniciar_Sesion: 'https://acelerandooportunidades2025.com/?iniciarsesion=true'
+                Iniciar_Sesion: 'https://acelerandooportunidades-2025.com/?iniciarsesion=true'
             };
             await sendMessage.sendEmailWithTemplate(to,subject,text,templateId, dynamicTemplate);
 

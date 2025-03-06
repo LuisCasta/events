@@ -14,7 +14,7 @@ const { v4: uuidv4 } = require('uuid');
 dotenv.config();
 
 
-const urlConfirmOrDeniedRoom = 'https://acelerandooportunidades2025.com?step=2';
+const urlConfirmOrDeniedRoom = 'https://acelerandooportunidades-2025.com?step=2';
 const templates = {
     confirmOrDeniedRoom : process.env.SG_TEMPLATE_confirmOrDeniedRoom,
     confirmOrDeniedRoomForSenderUser : process.env.SG_TEMPLATE_confirmOrDeniedRoomForSenderUser,
